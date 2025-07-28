@@ -1,10 +1,10 @@
-from PyQt6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QGraphicsDropShadowEffect, QFrame,
     QScrollArea, QWidget, QScroller, QScrollerProperties
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QColor, QGuiApplication
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer
+from PyQt5.QtGui import QColor, QGuiApplication
 
 
 class PurchaseConfirmationDialog(QDialog):
@@ -21,8 +21,8 @@ class PurchaseConfirmationDialog(QDialog):
             QTimer.singleShot(self.timeout, self.reject)
 
     def _setup_ui(self):
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
+        self.setAttribute(Qt.WA_TranslucentBackground)
         self.setModal(True)
 
         # Glavni okvir
@@ -38,7 +38,7 @@ class PurchaseConfirmationDialog(QDialog):
 
         outer_layout = QVBoxLayout(self)
         outer_layout.setContentsMargins(20, 20, 20, 20)
-        outer_layout.addWidget(self.main_frame, 0, Qt.AlignmentFlag.AlignCenter)
+        outer_layout.addWidget(self.main_frame, 0, Qt.AlignCenter)
 
         frame_layout = QVBoxLayout(self.main_frame)
         frame_layout.setContentsMargins(30, 30, 30, 30)
@@ -46,7 +46,7 @@ class PurchaseConfirmationDialog(QDialog):
 
         # Naslov
         title_label = QLabel("Potvrda kupovine", parent=self.main_frame)
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("""
             QLabel {
                 font-size: 18px;
@@ -59,8 +59,8 @@ class PurchaseConfirmationDialog(QDialog):
         # Scroll area
         scroll_area = QScrollArea(self.main_frame)
         scroll_area.setFixedHeight(200)
-        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll_area.setWidgetResizable(True)
         scroll_area.viewport().setStyleSheet("background-color: white;")
         scroll_area.setStyleSheet("""
@@ -75,7 +75,7 @@ class PurchaseConfirmationDialog(QDialog):
 
         # Omogući touch scroll
         viewport = scroll_area.viewport()
-        viewport.setAttribute(Qt.WidgetAttribute.WA_AcceptTouchEvents, True)
+        viewport.setAttribute(Qt.WA_AcceptTouchEvents, True)
         for gesture in (
             QScroller.ScrollerGestureType.TouchGesture,
             QScroller.ScrollerGestureType.LeftMouseButtonGesture
@@ -123,7 +123,7 @@ class PurchaseConfirmationDialog(QDialog):
             for entry in self.cart_items.values()
         )
         total_label = QLabel(f"Ukupno: {total} RSD", parent=self.main_frame)
-        total_label.setAlignment(Qt.AlignmentFlag.AlignRight)
+        total_label.setAlignment(Qt.AlignRight)
         total_label.setStyleSheet("""
             QLabel {
                 font-size: 16px;

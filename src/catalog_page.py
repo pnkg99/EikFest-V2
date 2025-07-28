@@ -1,7 +1,8 @@
-# src/catalog_page.py
-from PyQt6 import QtWidgets, QtCore, QtGui 
-from PyQt6.QtWidgets import QButtonGroup, QButtonGroup
+from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QButtonGroup
 from src.image_cache import get_cached_image
+
 # Boje
 ACCENT_COLOR = "#E1B10D"
 GRAY_COLOR = "#808080"
@@ -86,8 +87,8 @@ class ProductWidget(QtWidgets.QFrame):
         price_value.setStyleSheet(f"color: black;")
 
         currency = QtWidgets.QLabel("rsd")
-        currency.setFont(QtGui.QFont("Inter", 10))
-        currency.setStyleSheet("color: #A1A1A6;")
+        currency.setFont(QtGui.QFont("Inter", 12))
+        currency.setStyleSheet("color: #474747;")
 
         price_layout = QtWidgets.QHBoxLayout()
         price_layout.setContentsMargins(0, 0, 0, 0)
@@ -99,13 +100,12 @@ class ProductWidget(QtWidgets.QFrame):
         right_layout.addLayout(price_layout)
         # --- Add button ---
         add_btn = QtWidgets.QPushButton("Dodaj")
-        add_btn.setFont(QtGui.QFont("Inter", 14, QtGui.QFont.Weight.Bold))
-        add_btn.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
+        add_btn.setFont(QtGui.QFont("Inter", 16, QtGui.QFont.Weight.Bold))
         add_btn.setStyleSheet(f"""
         QPushButton {{
             background-color: #E1B10D;
             color: white;
-            padding: 8px;
+            padding: 12px;
             border-radius: 6px;
         }}
         """)
@@ -117,7 +117,7 @@ class ProductWidget(QtWidgets.QFrame):
 
         # --- More button ---
         more_btn = QtWidgets.QPushButton("Više")
-        more_btn.setFont(QtGui.QFont("Inter", 9,  QtGui.QFont.Weight.Bold))
+        more_btn.setFont(QtGui.QFont("Inter", 12,  QtGui.QFont.Weight.Bold))
         more_btn.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         more_btn.setStyleSheet(f"""
         QPushButton {{
@@ -326,9 +326,10 @@ class BasketItemWidget(QtWidgets.QFrame):
 
         # 1) Dugme za brisanje (X)
         btn_remove = QtWidgets.QToolButton()
-        btn_remove.setIcon(QtGui.QIcon("icons/remove.svg"))
-        btn_remove.setIconSize(QtCore.QSize(32,32))
-        btn_remove.setAutoRaise(True)
+        btn_remove.setIcon(QtGui.QIcon("icons/remove.png"))
+        btn_remove.setIconSize(QtCore.QSize(48,48))
+        btn_remove.setStyleSheet("background: transparent; border: none;")
+        btn_remove.setAutoRaise(False)
         btn_remove.clicked.connect(lambda: self.remove_item.emit(self.product['id']))
         bottom_layout.addWidget(btn_remove)
 
@@ -336,8 +337,9 @@ class BasketItemWidget(QtWidgets.QFrame):
 
         # 2) Dugme za smanjenje količine (-)
         btn_minus = QtWidgets.QToolButton()
-        btn_minus.setIcon(QtGui.QIcon("icons/minus.svg"))
-        btn_minus.setIconSize(QtCore.QSize(32,32))
+        btn_minus.setIcon(QtGui.QIcon("icons/minus.png"))
+        btn_minus.setIconSize(QtCore.QSize(48,48))
+        btn_minus.setStyleSheet("background: transparent; border: none;")
         btn_minus.setAutoRaise(True)
         btn_minus.clicked.connect(lambda: self._change_quantity(-1))
         bottom_layout.addWidget(btn_minus)
@@ -346,8 +348,9 @@ class BasketItemWidget(QtWidgets.QFrame):
 
         # 3) Dugme za povećanje količine (+)
         btn_plus = QtWidgets.QToolButton()
-        btn_plus.setIcon(QtGui.QIcon("icons/plus.svg"))
-        btn_plus.setIconSize(QtCore.QSize(32,32))
+        btn_plus.setIcon(QtGui.QIcon("icons/plus.png"))
+        btn_plus.setIconSize(QtCore.QSize(48,48))
+        btn_plus.setStyleSheet("background: transparent; border: none;")
         btn_plus.setAutoRaise(True)
         btn_plus.clicked.connect(lambda: self.add_to_cart.emit(self.product))
 
@@ -497,6 +500,12 @@ class CatalogPage(QtCore.QObject):
     # -------------------------
     def _setup_ui_elements(self):
         scroll_cat = self.widget.findChild(QtWidgets.QScrollArea, "categoryScrollArea")
+        scroll_cat.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+            }
+        """)
         if not scroll_cat:
             raise RuntimeError("categoryScrollArea nije pronađen")
         self.cat_contents = scroll_cat.widget()
@@ -524,6 +533,12 @@ class CatalogPage(QtCore.QObject):
         self.prod_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         scroll_basket = self.widget.findChild(QtWidgets.QScrollArea, "BasketScrollArea")
+        scroll_basket.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+            }
+        """)
         if not scroll_basket:
             raise RuntimeError("BasketScrollArea nije pronađen")
         self.basket_contents = scroll_basket.widget()
@@ -549,7 +564,7 @@ class CatalogPage(QtCore.QObject):
     def _setup_total_label(self):
         self.total_label = QtWidgets.QLabel("0.00 rsd")
         self.total_label.setFont(QtGui.QFont("Inter", 18, QtGui.QFont.Weight.Bold))
-        self.total_label.setStyleSheet("padding: 10px; color: #999090;")
+        self.total_label.setStyleSheet(" color: #474747;")
         self.total_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignBottom)
         self.basket_layout.addWidget(self.total_label)
 

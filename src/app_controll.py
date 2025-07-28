@@ -1,13 +1,13 @@
 from src.services.pn532 import create_nfc_reader
-from PyQt6.QtCore import QObject, pyqtSignal, QTimer
-from PyQt6.QtWidgets import QMessageBox, QWidget
+from PyQt5.QtCore import QObject, pyqtSignal, QTimer
+from PyQt5.QtWidgets import QMessageBox, QWidget, QDialog
+
 from src.config import ScreenType
 from src.services.web_api import (
     login, get_products, checkout_service,
     pay_card_info, write_nfc_card, read_nfc_card, change_balance
 )
 from src.msg_modal import ModernMessageDialog, ModalService
-from PyQt6.QtWidgets import QDialog
 from src.confirm_modal import PurchaseConfirmationDialog
 class AppController(QObject):
     """Main application controller handling business logic and screen transitions."""
@@ -62,13 +62,13 @@ class AppController(QObject):
             message=text,
             dialog_type="question",
             buttons=[
-                ("Da", QDialog.DialogCode.Accepted, callback_on_yes),
-                ("Ne", QDialog.DialogCode.Rejected, callback_on_no),
+                ("Da", QDialog.Accepted, callback_on_yes),
+                ("Ne", QDialog.Rejected, callback_on_no),
             ],
         )
 
         result = dialog.exec()
-        if result == QDialog.DialogCode.Accepted:
+        if result == QDialog.Accepted:
             if callback_on_yes:
                 callback_on_yes()
         else:
@@ -85,7 +85,7 @@ class AppController(QObject):
             auto_close=auto_close,
             timeout=timeout,
             buttons=[
-                ("Nazad", QDialog.DialogCode.Rejected, self._handle_back)
+                ("Nazad", QDialog.Rejected, self._handle_back)
             ] if not auto_close else None
         )
         dialog.exec()
@@ -245,8 +245,8 @@ class AppController(QObject):
                 message="Da li ste sigurni da želite da otkažete porudžbinu?",
                 dialog_type="warning",
                 buttons=[
-                    ("Da", QDialog.DialogCode.Accepted, self._cancel_order),
-                    ("Ne", QDialog.DialogCode.Rejected, lambda: print("[DEBUG] Otkazivanje poništeno"))
+                    ("Da", QDialog.Accepted, self._cancel_order),
+                    ("Ne", QDialog.Rejected, lambda: print("[DEBUG] Otkazivanje poništeno"))
                 ]
             )
             dialog.exec()
@@ -404,8 +404,8 @@ class AppController(QObject):
             message="Da li želiš da se izloguješ?",
             dialog_type="question",
             buttons=[
-                ("Nazad", QDialog.DialogCode.Rejected, self._handle_back),
-                ("OK", QDialog.DialogCode.Accepted, self._handle_logout)
+                ("Nazad", QDialog.Rejected, self._handle_back),
+                ("OK", QDialog.Accepted, self._handle_logout)
             ]
         )
         dialog.exec()

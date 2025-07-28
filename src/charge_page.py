@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QToolButton, 
 )
-from PyQt6.QtGui import QIcon 
-from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt5.QtGui import QIcon 
+from PyQt5.QtCore import Qt, QSize, pyqtSignal
+
 
 
 class ChargePage(QWidget):
@@ -34,14 +35,15 @@ class ChargePage(QWidget):
 
         # Header with back button and title
         header_layout = QHBoxLayout()
-        self.back_button = self.create_button("back", border=True, icon=QIcon("./icons/back.svg"), iconSize=48)
+        self.back_button = self.create_button("back", border=True, icon=QIcon("./icons/back.png"), iconSize=48)
         self.back_button.setFixedSize(40, 40)
+        self.back_button.setStyleSheet("background: transparent; border: none;")
         # Dodeli objectName za screen_manager
         self.back_button.setObjectName("btnChargeBack")
         
         self.title_label = QLabel("KREDIT NA KARTICI")
         self.title_label.setStyleSheet("font-weight: bold; font-size: 28px; color: #E1B10D; margin-bottom:20px;")
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setAlignment(Qt.AlignCenter)
 
         header_layout.addWidget(self.back_button)
         header_layout.addStretch()
@@ -85,7 +87,7 @@ class ChargePage(QWidget):
 
         # Uneti iznos
         self.current_amount_label = QLabel(self.current_amount)
-        self.current_amount_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.current_amount_label.setAlignment(Qt.AlignCenter)
         self.current_amount_label.setStyleSheet("font-weight: bold; font-size: 28px; color: #FFD33E; padding: 10px; margin-top: 4px; margin-bottom: 8px;")
 
         # Numpad
@@ -109,8 +111,11 @@ class ChargePage(QWidget):
         numpad_container.setMaximumWidth(300)
 
         # Credit action buttons
-        self.decrease_button = self.create_button("Umanji kredit", icon=QIcon("./icons/umanji.svg"), iconSize=[300, 100])
-        self.increase_button = self.create_button("Uvećaj za unet iznos", icon=QIcon("./icons/uvecaj.svg"), iconSize=[300, 100])
+        self.decrease_button = self.create_button("Umanji kredit", icon=QIcon("./icons/umanji.png"), iconSize=[300, 100])
+        self.increase_button = self.create_button("Uvećaj za unet iznos", icon=QIcon("./icons/uvecaj.png"), iconSize=[300, 100])
+
+        self.decrease_button.setStyleSheet("background: transparent; border: none;")
+        self.increase_button.setStyleSheet("background: transparent; border: none;")
 
         # Dodeli objectName za screen_manager
         self.decrease_button.setObjectName("btnDecreaseCredit")
@@ -126,7 +131,7 @@ class ChargePage(QWidget):
         main_layout.addLayout(card_info_layout)
         main_layout.addSpacing(12) 
         main_layout.addWidget(self.current_amount_label)
-        main_layout.addWidget(numpad_container, alignment=Qt.AlignmentFlag.AlignHCenter)
+        main_layout.addWidget(numpad_container, alignment=Qt.AlignHCenter)
         main_layout.addStretch()
         main_layout.addLayout(action_buttons_layout)
 

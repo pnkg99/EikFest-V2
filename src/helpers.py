@@ -1,5 +1,5 @@
 # helpers.py
-from PyQt6.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QLineEdit
 
 def wire_virtual_keyboard_for_login(login_widget, keyboard_manager):
     email_input = login_widget.findChild(QLineEdit, "EmailInput")
@@ -41,3 +41,5 @@ def wire_virtual_keyboard_for_login(login_widget, keyboard_manager):
         return super(type(root), root).mousePressEvent(event) if hasattr(super(type(root), root), 'mousePressEvent') else None
 
     root.mousePressEvent = mousePressEvent
+    # Sakrij tastaturu kada se pritisne Enter
+    keyboard_manager.keyboard.enter_pressed.connect(keyboard_manager.hide_keyboard)

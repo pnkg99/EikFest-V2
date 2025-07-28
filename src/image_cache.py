@@ -1,8 +1,8 @@
 # image_utils.py
 import os
 import requests
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtCore import QSize, QStandardPaths, Qt
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import QSize, QStandardPaths, Qt
 
 from PIL import Image
 from io import BytesIO

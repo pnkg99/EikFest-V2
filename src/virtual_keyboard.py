@@ -1,7 +1,7 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
-                             QGridLayout, QFrame, QSizePolicy, QApplication)
-from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, QRect
-from PyQt6.QtGui import QFont, QPalette, QColor
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, 
+                             QGridLayout, QFrame, QSizePolicy, QApplication, QLineEdit)
+from PyQt5.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, QRect, QTimer
+from PyQt5.QtGui import QFont, QPalette, QColor
 
 class VirtualKeyboard(QFrame):
     """Moderna virtuelna tastatura za touchscreen uređaje"""
@@ -24,7 +24,7 @@ class VirtualKeyboard(QFrame):
     def setupUI(self):
         """Postavlja UI tastaturi"""
         self.setFixedSize(800, 300)
-        self.setFrameStyle(QFrame.Shape.Box)
+        self.setFrameStyle(QFrame.Box)
         self.setStyleSheet("""
             VirtualKeyboard {
                 background-color: #2b2b2b;
@@ -49,13 +49,13 @@ class VirtualKeyboard(QFrame):
         """Postavlja animacije za prikaz/sakrivanje"""
         self.animation = QPropertyAnimation(self, b"geometry")
         self.animation.setDuration(300)
-        self.animation.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self.animation.setEasingCurve(QEasingCurve.OutCubic)
         
     def create_key_button(self, text, width_factor=1, is_special=False):
         """Kreira dugme za taster"""
         btn = QPushButton(text)
         btn.setFixedSize(int(60 * width_factor), 50)
-        btn.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        btn.setFont(QFont("Arial", 12, QFont.Bold))
         
         if is_special:
             btn.setStyleSheet("""
@@ -428,11 +428,10 @@ class KeyboardManager:
             return
             
         # Kreiraj timer za sakrivanje sa 0.3 sekunde delay-a
-        from PyQt6.QtCore import QTimer
         self.hide_timer = QTimer()
         self.hide_timer.timeout.connect(self.force_hide_keyboard)
         self.hide_timer.setSingleShot(True)
-        self.hide_timer.start(300)  # 0.3 sekunde delay
+        self.hide_timer.start(1)  # 0.3 sekunde delay
         print("[KEYBOARD] Hide timer started (0.3s)")
         
     def force_hide_keyboard(self):
@@ -544,7 +543,7 @@ class KeyboardManager:
 # Demo kod za testiranje
 if __name__ == "__main__":
     import sys
-    from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLineEdit, QLabel
+    from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLineEdit, QLabel
     
     app = QApplication(sys.argv)
     
@@ -565,7 +564,7 @@ if __name__ == "__main__":
     
     layout.addWidget(QLabel("Password:"))
     password_input = QLineEdit()
-    password_input.setEchoMode(QLineEdit.EchoMode.Password)
+    password_input.setEchoMode(QLineEdit.Password)
     layout.addWidget(password_input)
     
     # Keyboard manager
@@ -601,7 +600,8 @@ if __name__ == "__main__":
     # Poboljšano sakrivanje tastature
     def mousePressEvent(event):
         """Sakrij tastaturu samo ako klik nije na tastaturi ili input fieldu"""
-        click_pos = event.pos()
+        click_pos = event.globalPos()
+
         print(f"Mouse click at: {click_pos}")
         
         # Proveri da li je klik na input fieldu
@@ -623,4 +623,4 @@ if __name__ == "__main__":
     central_widget.mousePressEvent = mousePressEvent
     
     window.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())

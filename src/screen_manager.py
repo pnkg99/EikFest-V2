@@ -1,6 +1,6 @@
 # screen_manager.py
-from PyQt6 import QtWidgets
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, pyqtSignal
 from typing import Dict, Any, Optional
 from src.config import ScreenType
 from src.helpers import wire_virtual_keyboard_for_login
@@ -70,6 +70,9 @@ class ScreenManager(QObject):
         index = self.screen_indices[screen_name]
         self.stacked_widget.setCurrentIndex(index)
         self.current_screen = screen_name
+
+        if self.keyboard_manager and screen_name != ScreenType.LOGIN.value:
+            self.keyboard_manager.hide_keyboard()
 
         # Obavesti sve koji slušaju da je ekran promenjen
         self.screen_changed.emit(screen_name, data or {})

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from typing import Callable, List, Optional, Tuple
-from PyQt6.QtCore import Qt, QObject, pyqtSignal, QEvent
-from PyQt6.QtGui import QColor, QGuiApplication
-from PyQt6.QtWidgets import (
+from PyQt5.QtCore import Qt, QObject, pyqtSignal, QEvent
+from PyQt5.QtGui import QColor, QGuiApplication
+from PyQt5.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QGraphicsDropShadowEffect, QFrame, QGraphicsOpacityEffect
 )
 from typing import Optional, Callable, Any, List, Tuple
 from enum import Enum
-from PyQt6.QtWidgets import QDialog as QDialogBase  # zbog QDialog.DialogCode
+from PyQt5.QtWidgets import QDialog as QDialogBase  # zbog QDialog.DialogCode
 
 class ModernMessageDialog(QDialog):
     """
@@ -41,13 +41,13 @@ class ModernMessageDialog(QDialog):
         self._setup_ui(title, message)
 
         if self.auto_close:
-            from PyQt6.QtCore import QTimer
+            from PyQt5.QtCore import QTimer
             QTimer.singleShot(self.timeout, lambda: self.done(QDialogBase.DialogCode.Rejected))
 
     # ---------------- UI ----------------
 
     def _setup_ui(self, title: str, message: str):
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setModal(True)
 
@@ -75,7 +75,7 @@ class ModernMessageDialog(QDialog):
 
         icon_label = QLabel()
         icon_label.setFixedSize(60, 60)
-        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon_label.setAlignment(Qt.AlignCenter)
 
         colors = self._get_colors_for_type(self.dialog_type)
         icon_text = self._get_icon_for_type(self.dialog_type)
@@ -98,7 +98,7 @@ class ModernMessageDialog(QDialog):
         # Title
         if title:
             title_label = QLabel(title)
-            title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            title_label.setAlignment(Qt.AlignCenter)
             title_label.setWordWrap(True)
             title_label.setStyleSheet("""
                 QLabel {
@@ -112,7 +112,7 @@ class ModernMessageDialog(QDialog):
 
         # Message
         message_label = QLabel(message)
-        message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        message_label.setAlignment(Qt.AlignCenter)
         message_label.setWordWrap(True)
         message_label.setStyleSheet("""
             QLabel {
@@ -181,7 +181,7 @@ class ModernMessageDialog(QDialog):
                 button_layout.addWidget(ok_btn)
         else:
             auto_label = QLabel("Automatsko zatvaranje…")
-            auto_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            auto_label.setAlignment(Qt.AlignCenter)
             auto_label.setStyleSheet("""
                 QLabel {
                     font-size: 12px;
