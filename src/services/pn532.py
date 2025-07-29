@@ -3,6 +3,7 @@
 import sys
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QWidget
+import base64
 
 
 IS_WINDOWS = sys.platform.startswith("win")

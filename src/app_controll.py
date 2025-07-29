@@ -194,14 +194,17 @@ class AppController(QObject):
         """Obrađuje pisanje podataka na karticu (grupa 3)."""
         info = pay_card_info(self.bearer_token, card_id)
         if info:
-            if self.nfc_reader.write_card_number_block(card_id, info["card_number"]):
-                self.nfc_reader.write_cvc_code_block(card_id, info["cvc_code"], self.pin)
+            uid_bytes = bytes.fromhex(card_id)
+            if self.nfc_reader.write_card_number_block(uid_bytes, info["card_number"]):
+                self.nfc_reader.write_cvc_code_block(uid_bytes, info["cvc_code"], self.pin)
                 write_nfc_card(self.bearer_token, card_id)
 
     def _handle_read_card(self, card_id: str):
         """Obrađuje čitanje podataka sa kartice (grupe 4 i 5)."""
-        number = self.nfc_reader.read_card_number_block(card_id)
-        cvc = self.nfc_reader.read_cvc_code_block(card_id, self.pin)
+        
+        uid_bytes = bytes.fromhex(card_id)
+        number = self.nfc_reader.read_card_number_block(uid_bytes)
+        cvc = self.nfc_reader.read_cvc_code_block(uid_bytes, self.pin)
         
         if number and cvc:
             resp = read_nfc_card(self.bearer_token, number, cvc)
