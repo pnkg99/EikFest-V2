@@ -29,7 +29,7 @@ from cryptography.fernet import Fernet
 class NFCReader(QObject):
     """PN532 NFC Reader klasa za čitanje i pisanje NFC kartica"""
     
-    card_detected = pyqtSignal(bytes, str)  # uid_bytes, uid_hex
+    card_detected = pyqtSignal(str)  # uid_bytes, uid_hex
     card_removed = pyqtSignal()
     error_occurred = pyqtSignal(str)
     
@@ -113,7 +113,7 @@ class NFCReader(QObject):
                     print(f"Kartica detektovana: {uid_hex}")
                     
                     # Emituj signal
-                    self.card_detected.emit(uid, uid_hex)
+                    self.card_detected.emit(uid_hex)
                     
                     # Pozovi callback ako postoji
                     if self.callback:
@@ -131,7 +131,7 @@ class NFCReader(QObject):
             print(f"Greška pri čitanju kartice: {e}")
             # Ne emituj error za svaku grešku čitanja
     
-    def write_card_number_block(self, uid: bytes, card_number: str, block_number: int = 8) -> bool:
+    def write_card_number_block(self, uid: bytes, card_number: str, block_number: int = 8):
         """Upisuje broj kartice u specifičan blok"""
         if not self.pn532:
             return False
@@ -166,7 +166,7 @@ class NFCReader(QObject):
             print(f"Greška pri upisu card_number: {e}")
             return False
     
-    def write_cvc_code_block(self, uid: bytes, cvc_code: str, pin: str, block_number: int = 9) -> bool:
+    def write_cvc_code_block(self, uid: bytes, cvc_code: str, pin: str, block_number: int = 9):
         """Upisuje šifrovani CVC kod u specifičan blok"""
         if not self.pn532:
             return False
@@ -204,7 +204,7 @@ class NFCReader(QObject):
             print(f"Greška pri upisu cvc_code: {e}")
             return False
     
-    def read_card_number_block(self, uid: bytes, block_number: int = 8) -> str:
+    def read_card_number_block(self, uid: bytes, block_number: int = 8):
         """Čita broj kartice iz specifičnog bloka"""
         if not self.pn532:
             return ""
@@ -232,7 +232,7 @@ class NFCReader(QObject):
             print(f"Greška pri čitanju card_number: {e}")
             return ""
     
-    def read_cvc_code_block(self, uid: bytes, pin: str, block_number: int = 9) -> str:
+    def read_cvc_code_block(self, uid: bytes, pin: str, block_number: int = 9):
         """Čita i dešifruje CVC kod iz specifičnog bloka"""
         if not self.pn532:
             return ""
