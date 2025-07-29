@@ -4,6 +4,7 @@ import sys
 from PyQt5.QtCore import QObject, pyqtSignal, QTimer
 from PyQt5.QtWidgets import QWidget
 import base64
+from adafruit_pn532.adafruit_pn532 import MIFARE_CMD_AUTH_B
 
 
 IS_WINDOWS = sys.platform.startswith("win")
@@ -150,7 +151,7 @@ class NFCReader(QObject):
             # Autentifikuj se sa default ključem
             key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
             
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, 0x60, key):
+            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
                 # Upiši podatke
                 success = self.pn532.mifare_classic_write_block(block_number, data)
                 if success:
@@ -188,7 +189,7 @@ class NFCReader(QObject):
             # Autentifikuj se sa default ključem
             key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
             
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, 0x60, key):
+            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
                 # Upiši podatke
                 success = self.pn532.mifare_classic_write_block(block_number, data)
                 if success:
@@ -214,7 +215,7 @@ class NFCReader(QObject):
             # Autentifikuj se sa default ključem
             key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
             
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, 0x60, key):
+            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
                 # Čitaj podatke
                 data = self.pn532.mifare_classic_read_block(block_number)
                 if data:
@@ -242,7 +243,7 @@ class NFCReader(QObject):
             # Autentifikuj se sa default ključem
             key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
             
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, 0x60, key):
+            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
                 # Čitaj podatke
                 data = self.pn532.mifare_classic_read_block(block_number)
                 if data:
