@@ -2,7 +2,8 @@ import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
 from adafruit_pn532.adafruit_pn532 import MIFARE_CMD_AUTH_B
-from PySide6.QtCore import QTimer
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QWidget
 import time
 import logging
 import traceback
