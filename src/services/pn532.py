@@ -23,286 +23,150 @@ if not IS_WINDOWS:
 else:
     PN532_AVAILABLE = False
 
+import board
+import busio
+from adafruit_pn532.i2c import PN532_I2C
+from adafruit_pn532.adafruit_pn532 import MIFARE_CMD_AUTH_B
+import time
 
-import hashlib
-from cryptography.fernet import Fernet
+class NFCReader:
+    """
+    NFC čitač preko PN532 (I2C) fokusiran na rad sa blokom 8 i blokom 9 MIFARE Classic kartice.
+    U blok 8 se upisuje card_number (nešifrovan, uz default ključ), a u blok 9 se upisuje cvc_code
+    koji se šifrira pomoću PIN-a.
+    """
+    def __init__(self, root, on_card_read):
+        """
+        :param root: Widget koji pokreće/zaustavlja čitanje (koristi se samo za kompatibilnost, ne za scheduling)
+        :param on_card_read: Callback funkcija sa potpisom on_card_read(uid, uid_hex)
+        """
+        self.root = root
+        self.on_card_read = on_card_read
 
+        i2c = busio.I2C(board.SCL, board.SDA)
+        self.pn532 = PN532_I2C(i2c, debug=False)
+        self.pn532.SAM_configuration()
 
-class NFCReader(QObject):
-    """PN532 NFC Reader klasa za čitanje i pisanje NFC kartica"""
-    
-    card_detected = pyqtSignal(str)  # uid_bytes, uid_hex
-    card_removed = pyqtSignal()
-    error_occurred = pyqtSignal(str)
-    
-    def __init__(self, parent: QWidget = None, callback=None):
-        super().__init__(parent)
-        self.parent_widget = parent
-        self.callback = callback
-        self.pn532 = None
+        ic, ver, rev, support = self.pn532.firmware_version
+        #print(f"[NFCReader] PN532 Firmware Version: {ver}.{rev}")
+
+        self.check_interval_ms = 200
         self.is_running = False
-        self.reader_thread = None
-        self.last_card_uid = None
-        self.card_present = False
-        
-        # Timer za periodično čitanje
-        self.read_timer = QTimer()
-        self.read_timer.timeout.connect(self._check_for_card)
-        
-        self._initialize_reader()
-    
-    def _initialize_reader(self):
-        """Inicijalizuje PN532 čitač"""
-        if not PN532_AVAILABLE:
-            self.error_occurred.emit("PN532 biblioteke nisu dostupne")
-            return False
-            
-        try:
-            # Pokušaj inicijalizacije preko I2C
-            i2c = busio.I2C(board.SCL, board.SDA)
-            self.pn532 = PN532_I2C(i2c, debug=False)
-            
-            # Konfiguriši čitač
-            ic, ver, rev, support = self.pn532.firmware_version
-            print(f'PN532 firmware version: {ver}.{rev}')
-            
-            # Konfiguriši za čitanje MIFARE kartica
-            self.pn532.SAM_configuration()
-            
-            print("PN532 inicijalizovan uspešno")
-            return True
-            
-        except Exception as e:
-            print(f"Greška pri inicijalizaciji PN532: {e}")
-            self.error_occurred.emit(f"Greška pri inicijalizaciji: {e}")
-            return False
-    
+        self.last_uid = None  # Sprečava višestruku obradu iste kartice
+
+        self.default_key = [0xFF] * 6
+
     def start(self):
-        """Pokreće čitanje kartica"""
-        if not self.pn532:
-            self.error_occurred.emit("PN532 čitač nije inicijalizovan")
-            return
-            
-        self.is_running = True
-        self.read_timer.start(500)  # Proveri svake 500ms
-        print("NFC čitač pokrenut")
-    
-    def stop(self):
-        """Zaustavlja čitanje kartica"""
-        self.is_running = False
-        self.read_timer.stop()
-        self.last_card_uid = None
-        self.card_present = False
-        print("NFC čitač zaustavljen")
-    
-    def _check_for_card(self):
-        """Proverava da li je kartica prisutna"""
-        if not self.is_running or not self.pn532:
-            return
-            
-        try:
-            # Pokušaj čitanja kartice
-            uid = self.pn532.read_passive_target(timeout=0.1)
-            
-            if uid is not None:
-                uid_hex = uid.hex().upper()
-                
-                # Ako je nova kartica
-                if not self.card_present or self.last_card_uid != uid_hex:
-                    self.card_present = True
-                    self.last_card_uid = uid_hex
-                    
-                    print(f"Kartica detektovana: {uid_hex}")
-                    
-                    # Emituj signal
-                    self.card_detected.emit(uid_hex)
-                    
-                    # Pozovi callback ako postoji
-                    if self.callback:
-                        self.callback(uid, uid_hex)
-                        
-            else:
-                # Nema kartice
-                if self.card_present:
-                    self.card_present = False
-                    self.last_card_uid = None
-                    self.card_removed.emit()
-                    print("Kartica uklonjena")
-                    
-        except Exception as e:
-            print(f"Greška pri čitanju kartice: {e}")
-            # Ne emituj error za svaku grešku čitanja
-    
-    def write_card_number_block(self, uid: bytes, card_number: str, block_number: int = 8):
-        """Upisuje broj kartice u specifičan blok"""
-        if not self.pn532:
-            return False
-            
-        try:
-            # Konvertuj card_number u 16-byte podatak
-            data = card_number.encode('utf-8')
-            
-            # Dopuni ili skrati na 16 bajtova
-            if len(data) < 16:
-                data = data + b'\x00' * (16 - len(data))
-            else:
-                data = data[:16]
-            
-            # Autentifikuj se sa default ključem
-            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
-            
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
-                # Upiši podatke
-                success = self.pn532.mifare_classic_write_block(block_number, data)
-                if success:
-                    print(f"Card number uspešno upisan u blok {block_number}")
-                    return True
-                else:
-                    print(f"Greška pri upisu u blok {block_number}")
-                    return False
-            else:
-                print(f"Autentifikacija neuspešna za blok {block_number}")
-                return False
-                
-        except Exception as e:
-            print(f"Greška pri upisu card_number: {e}")
-            return False
-    
-    def write_cvc_code_block(self, uid: bytes, cvc_code: str, pin: str, block_number: int = 9):
-        """Upisuje šifrovani CVC kod u specifičan blok"""
-        if not self.pn532:
-            return False
-            
-        try:
-            # Šifruj CVC kod pomoću PIN-a
-            encrypted_cvc = self._encrypt_data(cvc_code, pin)
-            
-            # Konvertuj u bytes
-            data = encrypted_cvc.encode('utf-8')
-            
-            # Dopuni ili skrati na 16 bajtova
-            if len(data) < 16:
-                data = data + b'\x00' * (16 - len(data))
-            else:
-                data = data[:16]
-            
-            # Autentifikuj se sa default ključem
-            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
-            
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
-                # Upiši podatke
-                success = self.pn532.mifare_classic_write_block(block_number, data)
-                if success:
-                    print(f"CVC code uspešno upisan u blok {block_number}")
-                    return True
-                else:
-                    print(f"Greška pri upisu u blok {block_number}")
-                    return False
-            else:
-                print(f"Autentifikacija neuspešna za blok {block_number}")
-                return False
-                
-        except Exception as e:
-            print(f"Greška pri upisu cvc_code: {e}")
-            return False
-    
-    def read_card_number_block(self, uid: bytes, block_number: int = 8):
-        """Čita broj kartice iz specifičnog bloka"""
-        if not self.pn532:
-            return ""
-            
-        try:
-            # Autentifikuj se sa default ključem
-            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
-            
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
-                # Čitaj podatke
-                data = self.pn532.mifare_classic_read_block(block_number)
-                if data:
-                    # Ukloni padding nule
-                    card_number = data.decode('utf-8').rstrip('\x00')
-                    print(f"Card number pročitan iz bloka {block_number}: {card_number}")
-                    return card_number
-                else:
-                    print(f"Greška pri čitanju bloka {block_number}")
-                    return ""
-            else:
-                print(f"Autentifikacija neuspešna za blok {block_number}")
-                return ""
-                
-        except Exception as e:
-            print(f"Greška pri čitanju card_number: {e}")
-            return ""
-    
-    def read_cvc_code_block(self, uid: bytes, pin: str, block_number: int = 9):
-        """Čita i dešifruje CVC kod iz specifičnog bloka"""
-        if not self.pn532:
-            return ""
-            
-        try:
-            # Autentifikuj se sa default ključem
-            key = b'\xFF\xFF\xFF\xFF\xFF\xFF'
-            
-            if self.pn532.mifare_classic_authenticate_block(uid, block_number, MIFARE_CMD_AUTH_B, key):
-                # Čitaj podatke
-                data = self.pn532.mifare_classic_read_block(block_number)
-                if data:
-                    # Ukloni padding nule
-                    encrypted_cvc = data.decode('utf-8').rstrip('\x00')
-                    # Dešifruj CVC kod
-                    cvc_code = self._decrypt_data(encrypted_cvc, pin)
-                    print(f"CVC code pročitan iz bloka {block_number}")
-                    return cvc_code
-                else:
-                    print(f"Greška pri čitanju bloka {block_number}")
-                    return ""
-            else:
-                print(f"Autentifikacija neuspešna za blok {block_number}")
-                return ""
-                
-        except Exception as e:
-            print(f"Greška pri čitanju cvc_code: {e}")
-            return ""
-    
-    def _encrypt_data(self, data: str, key: str) -> str:
-        """Šifruje podatke pomoću ključa"""
-        try:
-            # Generiši ključ od PIN-a
-            key_bytes = hashlib.sha256(key.encode()).digest()
-            key_b64 = base64.urlsafe_b64encode(key_bytes)
-            
-            cipher = Fernet(key_b64)
-            encrypted = cipher.encrypt(data.encode())
-            return base64.urlsafe_b64encode(encrypted).decode()
-            
-        except Exception as e:
-            print(f"Greška pri šifrovanju: {e}")
-            return data  # Vrati originalni podatak ako šifrovanje ne uspe
-    
-    def _decrypt_data(self, encrypted_data: str, key: str) -> str:
-        """Dešifruje podatke pomoću ključa"""
-        try:
-            # Generiši ključ od PIN-a
-            key_bytes = hashlib.sha256(key.encode()).digest()
-            key_b64 = base64.urlsafe_b64encode(key_bytes)
-            
-            cipher = Fernet(key_b64)
-            encrypted_bytes = base64.urlsafe_b64decode(encrypted_data.encode())
-            decrypted = cipher.decrypt(encrypted_bytes)
-            return decrypted.decode()
-            
-        except Exception as e:
-            print(f"Greška pri dešifrovanju: {e}")
-            return encrypted_data  # Vrati šifrovani podatak ako dešifrovanje ne uspe
-    
-    def is_card_present(self) -> bool:
-        """Proverava da li je kartica trenutno prisutna"""
-        return self.card_present
-    
-    def get_last_card_uid(self) -> str:
-        """Vraća UID poslednje pročitane kartice"""
-        return self.last_card_uid or ""
+        if not self.is_running:
+            self.is_running = True
+            self._schedule_next_check()
+            #print("[NFCReader] Startovan polling.")
 
+    def stop(self):
+        self.is_running = False
+        #print("[NFCReader] Zaustavljen.")
+
+    def _schedule_next_check(self):
+        if self.is_running:
+            QTimer.singleShot(self.check_interval_ms, self._read_card_once)
+
+    def _read_card_once(self):
+        if not self.is_running:
+            return
+
+        uid = self.pn532.read_passive_target(timeout=0.1)
+        if uid:
+            uid_hex = ''.join(f"{b:02X}" for b in uid)
+            if self.last_uid == uid_hex:
+                # Ako je ista kartica već obrađena, ne pozivamo callback
+                pass
+            else:
+                self.last_uid = uid_hex
+                #print(f"[NFCReader] Kartica detektovana! UID={uid_hex}")
+                # Umesto self.root.after, koristimo QTimer.singleShot za zakazivanje callbacka
+		
+                QTimer.singleShot(0, lambda: self.on_card_read(uid, uid_hex))
+        else:
+            # Resetujemo ako kartica nije prisutna
+            self.last_uid = None
+
+        self._schedule_next_check()
+
+    def write_card_number_block(self, uid, card_number):
+        """Upisuje card_number u blok 8 (16 bajtova, popunjava se nulama ako je potrebno)."""
+        block = 8
+        card_bytes = [ord(ch) for ch in card_number]
+        if len(card_bytes) < 16:
+            card_bytes += [0x00] * (16 - len(card_bytes))
+        elif len(card_bytes) > 16:
+            card_bytes = card_bytes[:16]
+        if not self.pn532.mifare_classic_authenticate_block(uid, block, MIFARE_CMD_AUTH_B, self.default_key):
+            #print("Autentifikacija za blok 8 nije uspela.")
+            return False
+        if not self.pn532.mifare_classic_write_block(block, card_bytes):
+            #print("Upis card_number u blok 8 nije uspeo.")
+            return False
+        #print("Card number upisan u blok 8.")
+        return True
+
+    def write_cvc_code_block(self, uid, cvc_code, pin):
+        """
+        Šifrira cvc_code pomoću PIN-a i upisuje ga u blok 9.
+        """
+        block = 9
+        encrypted = self._encrypt_with_pin(cvc_code, pin)
+        enc_bytes = list(encrypted)
+        if len(enc_bytes) < 16:
+            enc_bytes += [0x00] * (16 - len(enc_bytes))
+        elif len(enc_bytes) > 16:
+            enc_bytes = enc_bytes[:16]
+        if not self.pn532.mifare_classic_authenticate_block(uid, block, MIFARE_CMD_AUTH_B, self.default_key):
+            #print("Autentifikacija za blok 9 nije uspela.")
+            return False
+        if not self.pn532.mifare_classic_write_block(block, enc_bytes):
+            #print("Upis cvc_code u blok 9 nije uspeo.")
+            return False
+        #print("CVC code (šifrovan) upisan u blok 9.")
+        return True
+
+    def read_card_number_block(self, uid):
+        """Čita podatke iz bloka 8 i vraća ih kao string."""
+        block = 8
+        if not self.pn532.mifare_classic_authenticate_block(uid, block, MIFARE_CMD_AUTH_B, self.default_key):
+            #print("Autentifikacija za blok 8 nije uspela pri čitanju.")
+            return None
+        data = self.pn532.mifare_classic_read_block(block)
+        if data:
+            return ''.join(chr(b) for b in data if 32 <= b <= 126)
+        return None
+
+    def read_cvc_code_block(self, uid, pin):
+        """Čita podatke iz bloka 9, dešifruje ih pomoću PIN-a i vraća cvc_code kao string."""
+        block = 9
+        if not self.pn532.mifare_classic_authenticate_block(uid, block, MIFARE_CMD_AUTH_B, self.default_key):
+            #print("Autentifikacija za blok 9 nije uspela pri čitanju.")
+            return None
+        data = self.pn532.mifare_classic_read_block(block)
+        if data:
+            return self._decrypt_with_pin(data, pin)
+        return None
+
+    def _encrypt_with_pin(self, text, pin):
+        """Jednostavna XOR šifra – šifrira text koristeći PIN."""
+        text_bytes = text.encode('utf-8')
+        pin_bytes = pin.encode('utf-8')
+        encrypted = bytearray()
+        for i, b in enumerate(text_bytes):
+            encrypted.append(b ^ pin_bytes[i % len(pin_bytes)])
+        return encrypted
+
+    def _decrypt_with_pin(self, data, pin):
+        """Dešifruje podatke korišćenjem PIN-a (XOR dešifrovanje)."""
+        pin_bytes = pin.encode('utf-8')
+        decrypted = bytearray()
+        for i, b in enumerate(data):
+            decrypted.append(b ^ pin_bytes[i % len(pin_bytes)])
+        return decrypted.decode('utf-8', errors='ignore').rstrip('\x00')
 
 # Mock klasa za testiranje bez fizičkog čitača
 class MockNFCReader(NFCReader):
