@@ -1,6 +1,6 @@
 import sys
-from PyQt6 import QtWidgets, uic, QtCore
-from PyQt6.QtGui import QGuiApplication
+from PyQt5 import QtWidgets, uic, QtCore
+from PyQt5.QtWidgets import QApplication
 
 from src.config import ScreenType
 from src.screen_manager import ScreenManager
@@ -22,7 +22,7 @@ class MainWindow(QtWidgets.QDialog):
         # 2) enable touch‑scroll on your two scroll areas
         self._init_scrollers()
 
-        # 3) wire up category list once it’s loaded
+        # 3) wire up category list once it's loaded
         self.app_controller.categories_loaded.connect(
             self.catalog_page.update_categories
         )
@@ -40,6 +40,7 @@ class MainWindow(QtWidgets.QDialog):
         idx = self.screen_manager.screen_indices[ScreenType.CATALOG.value]
         placeholder = self.stackedWidget.widget(idx)
         self.catalog_page = CatalogPage(placeholder)
+        
         self.charge_page = ChargePage()
         self.stackedWidget.addWidget(self.charge_page)
         self.screen_manager.screens[ScreenType.CHARGE.value] = self.charge_page
@@ -56,26 +57,26 @@ class MainWindow(QtWidgets.QDialog):
             self.catalog_page.scroll_basket
         ):
             scroll.setHorizontalScrollBarPolicy(
-                QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+                QtCore.Qt.ScrollBarAlwaysOff
             )
             scroll.setVerticalScrollBarPolicy(
-                QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+                QtCore.Qt.ScrollBarAlwaysOff
             )
             scroll.setWidgetResizable(True)
             vp = scroll.viewport()
-            vp.setAttribute(QtCore.Qt.WidgetAttribute.WA_AcceptTouchEvents, True)
+            vp.setAttribute(QtCore.Qt.WA_AcceptTouchEvents, True)
 
             # enable touch and mouse‑drag
             for gesture in (
-                QtWidgets.QScroller.ScrollerGestureType.TouchGesture,
-                QtWidgets.QScroller.ScrollerGestureType.LeftMouseButtonGesture
+                QtWidgets.QScroller.TouchGesture,
+                QtWidgets.QScroller.LeftMouseButtonGesture
             ):
                 QtWidgets.QScroller.grabGesture(vp, gesture)
 
             sc = QtWidgets.QScroller.scroller(vp)
             props = sc.scrollerProperties()
             props.setScrollMetric(
-                QtWidgets.QScrollerProperties.ScrollMetric.AxisLockThreshold,
+                QtWidgets.QScrollerProperties.AxisLockThreshold,
                 1.0
             )
             sc.setScrollerProperties(props)
@@ -84,12 +85,12 @@ class MainWindow(QtWidgets.QDialog):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     window = MainWindow()
 
     # show window then kick off the first screen
-    window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
+    window.setWindowFlags(QtCore.Qt.FramelessWindowHint)
     window.showFullScreen()
     window.app_controller.start_app()
 
-    sys.exit(app.exec())
+    sys.exit(app.exec_())
