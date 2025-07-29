@@ -1,34 +1,3 @@
-# services/pn532.py
-# services/pn532.py
-import sys
-from PyQt5.QtCore import QObject, pyqtSignal, QTimer
-from PyQt5.QtWidgets import QWidget
-import base64
-from adafruit_pn532.adafruit_pn532 import MIFARE_CMD_AUTH_B
-
-
-IS_WINDOWS = sys.platform.startswith("win")
-
-if not IS_WINDOWS:
-    try:
-        import board
-        import busio
-        from digitalio import DigitalInOut
-        from adafruit_pn532.i2c import PN532_I2C
-        from adafruit_pn532.uart import PN532_UART
-        from adafruit_pn532.spi import PN532_SPI
-        PN532_AVAILABLE = True
-    except Exception:
-        PN532_AVAILABLE = False
-else:
-    PN532_AVAILABLE = False
-
-import board
-import busio
-from adafruit_pn532.i2c import PN532_I2C
-from adafruit_pn532.adafruit_pn532 import MIFARE_CMD_AUTH_B
-import time
-
 import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
@@ -498,6 +467,10 @@ def main():
     print("Proverite 'nfc_debug.log' fajl za detaljne debug informacije.")
 
 
+if __name__ == '__main__':
+    main()
+
+
 
 # Mock klasa za testiranje bez fizičkog čitača
 class MockNFCReader(NFCReader):
@@ -567,7 +540,3 @@ def create_nfc_reader(parent: QWidget = None, callback=None, force_mock: bool = 
         return MockNFCReader(parent, callback)
     else:
         return NFCReader(parent, callback)
-
-
-if __name__ == '__main__':
-    main()
