@@ -4,12 +4,10 @@ from PyQt5.QtWidgets import QApplication
 
 from src.config import ScreenType
 from src.screen_manager import ScreenManager
-from src.app_controll import AppController      # ← fixed typo here
+from src.app_controll import AppController
 from src.catalog_page import CatalogPage
 from src.charge_page import ChargePage
 from src.virtual_keyboard import KeyboardManager
-
-
 
 class MainWindow(QtWidgets.QDialog):
     def __init__(self):
@@ -28,7 +26,6 @@ class MainWindow(QtWidgets.QDialog):
         )
 
         self.CardHelpFooter.mousePressEvent = lambda event: self.app_controller._on_logout_requested()
-
 
     def _init_screen_manager(self):
         self.keyboard_manager = KeyboardManager(self)  # Kreiraj tastaturu
@@ -86,6 +83,8 @@ class MainWindow(QtWidgets.QDialog):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setOverrideCursor(QtCore.Qt.BlankCursor)
+
     window = MainWindow()
 
     # show window then kick off the first screen

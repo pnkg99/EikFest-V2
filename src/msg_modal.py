@@ -147,9 +147,6 @@ class ModernMessageDialog(QDialog):
                             padding: 0px 20px;
                             min-width: 100px;
                         }}
-                        QPushButton:hover {{
-                            background-color: {colors['button_hover']};
-                        }}
                         QPushButton:pressed {{
                             background-color: {colors['button_pressed']};
                         }}
@@ -170,9 +167,6 @@ class ModernMessageDialog(QDialog):
                         font-weight: bold;
                         padding: 0px 20px;
                         min-width: 100px;
-                    }}
-                    QPushButton:hover {{
-                        background-color: {colors['button_hover']};
                     }}
                     QPushButton:pressed {{
                         background-color: {colors['button_pressed']};
