@@ -2,14 +2,14 @@ import board
 import busio
 from adafruit_pn532.i2c import PN532_I2C
 from adafruit_pn532.adafruit_pn532 import MIFARE_CMD_AUTH_B
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QObject
 from PyQt5.QtWidgets import QWidget
 import time
 import logging
 import traceback
 from enum import Enum
 from typing import Optional, Callable, Tuple, List
-
+import sys
 
 class DebugLevel(Enum):
     NONE = 0
@@ -283,8 +283,7 @@ class NFCReader:
         else:
             self.debugger.log(DebugLevel.ERROR, "Oporavak neuspešan")
     
-    def write_card_number_block(self, uid: bytes, card_number: str) -> bool:
-        """Upisuje card_number u blok sa error handling-om"""
+    def write_card_number_block(self, uid: bytes, card_number: str):
         try:
             self.debugger.log(DebugLevel.DEBUG, f"Upisujem card_number u blok {self.card_number_block}")
             
