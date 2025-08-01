@@ -124,12 +124,24 @@ class AppController(QObject):
         print(f"Login requested: {email}")
         
         if not (email and password):
-            print("Invalid credentials")
+            self._show_message(
+                "Neuspešan login",
+                "Nisu uneti kredencijali",
+                msg_type="warning",
+                auto_close=True,
+                timeout=1500
+            )
             return
 
         resp = login(email, password)
         if not resp:
-            print("Login failed")
+            self._show_message(
+            "Neuspešan login",
+            "Vaša porudžbina je uspešno otkazana.",
+            msg_type="warning",
+            auto_close=True,
+            timeout=1500
+            )
             return
 
         self.bearer_token = resp.get("token")
@@ -202,13 +214,45 @@ class AppController(QObject):
             if self.nfc_reader.write_card_number_block(uid_bytes, info["card_number"]):
                 if self.nfc_reader.write_cvc_code_block(uid_bytes, info["cvc_code"], self.pin):
                     write_nfc_card(self.bearer_token, card_id)
+                    self._show_message(
+                        "Uspešna registracija kartice",
+                        f"Uspesno registrovana nova kartica!\n"
+                        f"UID: {card_id}\n"
+                        f"CARD NUMBER: {info['card_number']}\n"
+                        f"CVC CODE: {info['cvc_code']}",
+                        msg_type="success",
+                        auto_close=True,
+                        timeout=2000
+                    )
                 else :
                     print("failed to wirte cvc code")
+                    self._show_message(
+                        "Neuspešna registracija kartice",
+                        "Neuspeh pri upisu cvc koda",
+                        msg_type="error",
+                        auto_close=True,
+                        timeout=2000
+                    )
             else :
                 print("failed to wirte carad number")
+                self._show_message(
+                    "Neuspešna registracija kartice",
+                    "Neuspeh pri upisu card number",
+                    msg_type="error",
+                    auto_close=True,
+                    timeout=2000
+                )
         else :
             print("Failed to get pay_card_info for card with id : ", card_id)
-    
+            self._show_message(
+                "Neuspešna registracija kartice",
+                "Neuspeh pri dobijanju dozvole za registraciju kartice",
+                msg_type="error",
+                auto_close=True,
+                timeout=2000
+            )
+ 
+     
     def _handle_read_card(self, card_id: str):
         """Obrađuje čitanje podataka sa kartice (grupe 4 i 5)."""
         
