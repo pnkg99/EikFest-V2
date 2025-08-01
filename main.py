@@ -78,12 +78,29 @@ class MainWindow(QtWidgets.QDialog):
             )
             sc.setScrollerProperties(props)
             
-            
+
+class CursorHider(QtCore.QObject):
+    def eventFilter(self, obj, event):
+        # Ako se pomeri miš, klikne ili dodirne ekran – sakrij kursor
+        if event.type() in (
+            QtCore.QEvent.MouseMove,
+            QtCore.QEvent.MouseButtonPress,
+            QtCore.QEvent.MouseButtonRelease,
+            QtCore.QEvent.TouchBegin,
+            QtCore.QEvent.TouchUpdate,
+            QtCore.QEvent.TouchEnd,
+        ):
+            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.BlankCursor)
+        return super().eventFilter(obj, event)
+       
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setOverrideCursor(QtCore.Qt.BlankCursor)
+    hider = CursorHider()
+    app.installEventFilter(hider)
+
 
     window = MainWindow()
 
