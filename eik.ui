@@ -224,8 +224,9 @@
                <string/>
               </property>
               <property name="text">
-               <string>redwings@vibe2025.rs</string>
+               <!-- <string>redwings@vibe2025.rs</string> -->
                 <!-- <string>prodajnomesto1@vibe2025.rs</string> -->
+                <string>npm@fest.eik.rs</string>
               </property>
               <property name="cursorPosition">
                <number>20</number>
@@ -257,7 +258,8 @@
                <string/>
               </property>
               <property name="text">
-               <string>12345678</string>
+               <!-- <string>12345678</string> -->
+                <string>npmsystem2025!!</string>
               </property>
               <property name="echoMode">
                <enum>QLineEdit::Password</enum>
