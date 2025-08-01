@@ -97,13 +97,15 @@ class CursorHider(QtCore.QObject):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setOverrideCursor(QtCore.Qt.BlankCursor)
-    hider = CursorHider()
-    app.installEventFilter(hider)
+    from PyQt5.QtGui import QCursor, QPixmap
+
+    transparent_cursor = QCursor(QPixmap(1, 1))  # providni 1x1
+    app.setOverrideCursor(transparent_cursor)
 
 
     window = MainWindow()
 
+    window.setCursor(transparent_cursor)
     # show window then kick off the first screen
     window.setWindowFlags(QtCore.Qt.FramelessWindowHint)
     window.showFullScreen()
