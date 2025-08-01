@@ -138,7 +138,8 @@ class AppController(QObject):
         # Mapiranje grupa na sledeće ekrane
         group_screen_mapping = {
             5: ScreenType.CATALOG.value,
-            4: ScreenType.CHARGE.value
+            4: ScreenType.CHARGE.value,
+            3: ScreenType.CARD.value
         }
         
         self.next_screen_after_card = group_screen_mapping.get(self.user_group_id)
@@ -148,6 +149,8 @@ class AppController(QObject):
             if self._load_categories():
                 self.screen_manager.switch_to_screen(ScreenType.CARD.value)
         elif self.user_group_id == 4:
+            self.screen_manager.switch_to_screen(ScreenType.CARD.value)
+        elif self.user_group_id == 3 :
             self.screen_manager.switch_to_screen(ScreenType.CARD.value)
 
     def _load_categories(self):
@@ -194,11 +197,18 @@ class AppController(QObject):
         """Obrađuje pisanje podataka na karticu (grupa 3)."""
         info = pay_card_info(self.bearer_token, card_id)
         if info:
+            print("Info : ", info)
             uid_bytes = bytes.fromhex(card_id)
             if self.nfc_reader.write_card_number_block(uid_bytes, info["card_number"]):
-                self.nfc_reader.write_cvc_code_block(uid_bytes, info["cvc_code"], self.pin)
-                write_nfc_card(self.bearer_token, card_id)
-
+                if self.nfc_reader.write_cvc_code_block(uid_bytes, info["cvc_code"], self.pin):
+                    write_nfc_card(self.bearer_token, card_id)
+                else :
+                    print("failed to wirte cvc code")
+            else :
+                print("failed to wirte carad number")
+        else :
+            print("Failed to get pay_card_info for card with id : ", card_id)
+    
     def _handle_read_card(self, card_id: str):
         """Obrađuje čitanje podataka sa kartice (grupe 4 i 5)."""
         
